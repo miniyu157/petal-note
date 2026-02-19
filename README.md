@@ -16,7 +16,7 @@
 
 Petal 是一个极简, 唯美, 无需任何构建工具链的纯前端日记/碎碎念框架。没有冗余的依赖, 只需最纯粹的 HTML, TXT 和 TOML, 即可在任何支持静态托管的平台上部署。
 
-**🌸 [Live Demo](https://petal-note-demo.vercel.app/) 🌸**
+**🌸 [Live Demo](https://petal-note.vercel.app/) 🌸**
 
 ### ✨ 特性
 
