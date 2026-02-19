@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta id="theme-color" name="theme-color" content="">
-    
     <title id="doc-title"></title>
     <style>
         :root {
@@ -322,7 +321,7 @@
             display: block;
         }
 
-        .card:not(.expanded) .card-img {
+        .card.has-more:not(.expanded) .card-img {
             pointer-events: none;
         }
 
@@ -358,6 +357,8 @@
             letter-spacing: 0.15em;
             line-height: 1;
             transform: translateY(2px);
+            user-select: none;
+            -webkit-user-select: none;
         }
     </style>
 </head>
@@ -464,6 +465,7 @@
             async bootstrap() {
                 this.bindGlobalEvents();
                 const loader = document.getElementById('loader');
+                let config = {};
 
                 try {
                     const [dataRes, configRes] = await Promise.allSettled([
@@ -471,15 +473,23 @@
                         fetch('config.toml')
                     ]);
 
-                    if (configRes.status === 'fulfilled') {
+                    if (configRes.status === 'fulfilled' && configRes.value.ok) {
                         const rawConfig = await configRes.value.text();
-                        this.applyConfig(this.parseToml(rawConfig));
+                        config = this.parseToml(rawConfig);
+                        this.applyConfig(config);
                     }
 
                     await document.fonts.ready;
-                    await new Promise(resolve => setTimeout(resolve, 1800));
-                    if (dataRes.status === 'fulfilled') {
+
+                    const delay = config.load_delay || 0;
+                    if (delay > 0) {
+                        await new Promise(r => setTimeout(r, delay));
+                    }
+
+                    if (dataRes.status === 'fulfilled' && dataRes.value.ok) {
                         const text = await dataRes.value.text();
+                        if (text.trim().startsWith('<')) throw new Error('Data format error');
+                        
                         this.items = this.parse(text);
                         this.renderTags();
                         this.render();
@@ -492,11 +502,12 @@
                         }, 500);
 
                     } else {
-                        throw new Error();
+                        throw new Error('Data not found');
                     }
                 } catch (e) {
+                    new SakuraSystem('bg-canvas');
                     loader.classList.add('hidden');
-                    this.el.innerHTML = '<div style="text-align:center; color: var(--text-muted); font-size: 0.9rem;">无法加载日记，请确保在本地服务器环境下运行。</div>';
+                    this.el.innerHTML = '<div style="text-align:center; color: var(--text-muted); font-size: 0.95rem; letter-spacing: 0.05em; margin-block-start: 2rem;">没有找到散落的花瓣，请先种下 data.txt 吧。</div>';
                     setTimeout(() => this.el.classList.add('ready'), 500);
                 }
             }
@@ -513,6 +524,11 @@
                 const singleRegex = /([a-zA-Z0-9_]+)\s*=\s*"([^"]*)"/g;
                 while ((m = singleRegex.exec(text)) !== null) {
                     config[m[1]] = m[2].trim();
+                    text = text.replace(m[0], '');
+                }
+                const numRegex = /([a-zA-Z0-9_]+)\s*=\s*(\d+)/g;
+                while ((m = numRegex.exec(text)) !== null) {
+                    config[m[1]] = parseInt(m[2], 10);
                 }
                 return config;
             }
@@ -679,7 +695,7 @@
                     
                     card.addEventListener('click', (e) => {
                         if (e.target.closest('a')) return;
-                        if (e.target.tagName === 'IMG' && card.classList.contains('expanded')) return;
+                        if (e.target.tagName === 'IMG') return;
                         
                         history.replaceState(null, '', '#' + item.id);
                         
