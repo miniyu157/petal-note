@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta id="theme-color" name="theme-color" content="">
+    
+    <title id="doc-title"></title>
+    <style>
+        :root {
+            --text-main: #5c4b51;
+            --text-muted: #ab9ba0;
+            --timeline-accent: #f4c2c2;
+            --card-bg-blur: rgb(255 255 255 / 65%);
+            --rose-ellipsis: #d88c9a;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #f1f3f4 100%);
+            color: var(--text-main);
+            min-height: 100dvh;
+            overflow-x: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #fdfbfb 0%, #f1f3f4 100%);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        #loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--timeline-accent);
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgb(244 194 194 / 60%);
+            animation: breathe 1.5s infinite ease-in-out;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(0.8); opacity: 0.4; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1; 
+        }
+
+        .corner-link {
+            position: absolute;
+            top: 2rem;
+            right: 2.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+            opacity: 0.4;
+            transition: opacity 0.4s ease;
+            font-family: system-ui, sans-serif;
+            z-index: 10;
+            display: none;
+        }
+
+        .corner-link:hover {
+            opacity: 0.8;
+        }
+
+        @media (max-width: 600px) {
+            .corner-link {
+                top: 1.5rem;
+                right: 1.5rem;
+            }
+        }
+
+        .container {
+            flex: 1;
+            width: 100%;
+            max-width: 580px;
+            margin-inline: auto;
+            padding: 4rem 1.5rem;
+        }
+
+        header {
+            text-align: center;
+            margin-block-end: 2.5rem;
+
+            & h1 {
+                font-weight: 300;
+                letter-spacing: 0.25em;
+                color: #d88c9a;
+                margin-block: 0 0.5rem;
+                font-size: 1.8rem;
+                min-height: 1.8rem;
+            }
+
+            & p {
+                font-size: 0.9rem;
+                color: var(--text-muted);
+                font-style: italic;
+                line-height: 1.6;
+                min-height: 1.4rem;
+            }
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-block-end: 3.5rem;
+            min-height: 28px;
+        }
+
+        .tag {
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            background: rgb(255 255 255 / 40%);
+            border: 1px solid rgb(255 255 255 / 30%);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            backdrop-filter: blur(8px);
+            -webkit-tap-highlight-color: transparent;
+            font-family: system-ui, sans-serif;
+
+            @media (hover: hover) {
+                &:hover {
+                    transform: scale(0.95);
+                    background: rgb(255 255 255 / 60%);
+                    color: var(--text-main);
+                }
+            }
+
+            &:active {
+                transform: scale(0.92);
+            }
+
+            &.active {
+                background: var(--timeline-accent);
+                color: #fff;
+                border-color: var(--timeline-accent);
+                box-shadow: inset 0 1px 3px rgb(0 0 0 / 10%);
+            }
+        }
+
+        .timeline {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .item {
+            display: grid;
+            grid-template-columns: 20px 1fr;
+            gap: 1.2rem;
+            opacity: 0;
+        }
+
+        .timeline.ready .item {
+            animation: fadeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes targetPulse {
+            0% { box-shadow: 0 2px 8px rgb(0 0 0 / 3%); border-color: rgb(255 255 255 / 40%); }
+            40% { box-shadow: 0 0 16px 2px var(--timeline-accent); border-color: var(--timeline-accent); }
+            100% { box-shadow: 0 2px 8px rgb(0 0 0 / 3%); border-color: rgb(255 255 255 / 40%); }
+        }
+
+        .track {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+
+            & .node {
+                width: 8px;
+                height: 8px;
+                background-color: #fff;
+                border: 2px solid var(--timeline-accent);
+                border-radius: 50%;
+                box-shadow: 0 0 0 3px rgb(244 194 194 / 15%);
+                flex-shrink: 0;
+                margin-block-top: 0.5em; 
+                position: relative;
+                z-index: 2;
+            }
+
+            & .line {
+                width: 1px;
+                flex-grow: 1;
+                background-color: var(--timeline-accent);
+                opacity: 0.5;
+            }
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            font-family: system-ui, sans-serif;
+        }
+
+        .card {
+            position: relative;
+            background: var(--card-bg-blur);
+            backdrop-filter: blur(12px) saturate(120%);
+            -webkit-backdrop-filter: blur(12px) saturate(120%);
+            border-radius: 6px;
+            border: 1px solid rgb(255 255 255 / 40%);
+            box-shadow: 0 2px 8px rgb(0 0 0 / 3%);
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease, background 0.3s ease;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+
+            @media (hover: hover) {
+                &:hover {
+                    transform: scale(0.99);
+                    box-shadow: 0 1px 4px rgb(0 0 0 / 4%);
+                }
+            }
+
+            &:active {
+                transform: scale(0.97);
+                box-shadow: inset 0 1px 3px rgb(0 0 0 / 4%);
+                background: rgb(255 255 255 / 45%);
+            }
+        }
+
+        .card-id {
+            position: absolute;
+            top: 1.2rem;
+            right: 1.4rem;
+            font-size: 0.75rem;
+            font-family: system-ui, sans-serif;
+            color: var(--text-muted);
+            opacity: 0.25;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 2;
+        }
+
+        .card:hover .card-id {
+            opacity: 0.5;
+        }
+
+        .card-inner {
+            padding: 1.2rem 1.4rem;
+            line-height: 1.7;
+            font-size: 0.95rem;
+            max-height: calc(1.7em * 5 + 2.4rem);
+            overflow: hidden;
+            transition: max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .card.expanded .card-inner {
+            max-height: 2000px;
+        }
+
+        .card-tag {
+            color: var(--rose-ellipsis);
+            margin-inline-end: 0.4rem;
+            display: inline-block;
+            font-family: system-ui, sans-serif;
+            font-size: 0.85rem;
+        }
+
+        .card-link {
+            color: var(--rose-ellipsis);
+            text-decoration: none;
+            border-bottom: 1px dashed rgb(216 140 154 / 40%);
+            transition: all 0.3s ease;
+            padding-bottom: 1px;
+            word-break: break-all;
+        }
+
+        .card-link:hover {
+            border-bottom-color: var(--rose-ellipsis);
+            background: rgb(216 140 154 / 10%);
+        }
+
+        .card-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin-block: 0.6rem;
+            box-shadow: 0 2px 6px rgb(0 0 0 / 5%);
+            cursor: zoom-in;
+            display: block;
+        }
+
+        .card:not(.expanded) .card-img {
+            pointer-events: none;
+        }
+
+        .card-mask {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3.5rem;
+            background: linear-gradient(to bottom, transparent, rgb(255 255 255 / 80%) 50%, rgb(255 255 255 / 95%) 100%);
+            display: none;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 0.6rem;
+            opacity: 1;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .card.has-more:not(.expanded) .card-mask {
+            display: flex;
+        }
+
+        .card.has-more.expanded .card-mask {
+            display: flex;
+            opacity: 0;
+        }
+
+        .ellipsis {
+            color: var(--rose-ellipsis);
+            font-size: 1.2rem;
+            letter-spacing: 0.15em;
+            line-height: 1;
+            transform: translateY(2px);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <div class="loader-dot"></div>
+    </div>
+
+    <a id="corner-link" target="_blank" rel="noopener noreferrer" class="corner-link"></a>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="container">
+        <header>
+            <h1 id="site-title"></h1>
+            <p id="site-subtitle"></p>
+        </header>
+
+        <nav class="tags" id="tags"></nav>
+        <main class="timeline" id="timeline"></main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script>
+
+    <script>
+        class SakuraSystem {
+            constructor(id) {
+                this.canvas = document.getElementById(id);
+                this.ctx = this.canvas.getContext('2d');
+                this.petals = [];
+                this.num = 45;
+                this.w = window.innerWidth;
+                this.h = window.innerHeight;
+                this.init();
+                window.addEventListener('resize', () => {
+                    this.w = window.innerWidth;
+                    this.h = window.innerHeight;
+                    this.canvas.width = this.w;
+                    this.canvas.height = this.h;
+                });
+                this.render();
+            }
+
+            init() {
+                this.canvas.width = this.w;
+                this.canvas.height = this.h;
+                for (let i = 0; i < this.num; i++) {
+                    this.petals.push({
+                        x: Math.random() * this.w,
+                        y: Math.random() * this.h,
+                        s: Math.random() * 0.4 + 0.3,
+                        r: Math.random() * 360,
+                        vx: Math.random() * 1 - 0.5,
+                        vy: Math.random() * 0.8 + 0.4,
+                        vr: Math.random() * 2 - 1,
+                        flip: Math.random(),
+                        flipSpeed: Math.random() * 0.03 + 0.01
+                    });
+                }
+            }
+
+            render() {
+                this.ctx.clearRect(0, 0, this.w, this.h);
+                this.petals.forEach(p => {
+                    p.y += p.vy;
+                    p.x += p.vx + Math.sin(p.flip) * 0.5;
+                    p.r += p.vr;
+                    p.flip += p.flipSpeed;
+
+                    if (p.y > this.h + 20 || p.x > this.w + 20 || p.x < -20) {
+                        p.y = -20;
+                        p.x = Math.random() * this.w;
+                    }
+
+                    this.ctx.save();
+                    this.ctx.translate(p.x, p.y);
+                    this.ctx.rotate(p.r * Math.PI / 180);
+                    this.ctx.scale(p.s * Math.max(0.1, Math.abs(Math.cos(p.flip))), p.s);
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, 0);
+                    this.ctx.bezierCurveTo(-15, -15, -15, -30, 0, -30);
+                    this.ctx.bezierCurveTo(15, -30, 15, -15, 0, 0);
+                    
+                    const g = this.ctx.createLinearGradient(0, -30, 0, 0);
+                    g.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+                    g.addColorStop(1, 'rgba(255, 197, 208, 0.7)');
+                    this.ctx.fillStyle = g;
+                    this.ctx.fill();
+                    this.ctx.restore();
+                });
+                requestAnimationFrame(() => this.render());
+            }
+        }
+
+        class Application {
+            constructor() {
+                this.el = document.getElementById('timeline');
+                this.tagsEl = document.getElementById('tags');
+                this.items = [];
+                this.active = null;
+            }
+
+            async bootstrap() {
+                this.bindGlobalEvents();
+                const loader = document.getElementById('loader');
+
+                try {
+                    const [dataRes, configRes] = await Promise.allSettled([
+                        fetch('data.txt'),
+                        fetch('config.toml')
+                    ]);
+
+                    if (configRes.status === 'fulfilled') {
+                        const rawConfig = await configRes.value.text();
+                        this.applyConfig(this.parseToml(rawConfig));
+                    }
+
+                    await document.fonts.ready;
+                    await new Promise(resolve => setTimeout(resolve, 1800));
+                    if (dataRes.status === 'fulfilled') {
+                        const text = await dataRes.value.text();
+                        this.items = this.parse(text);
+                        this.renderTags();
+                        this.render();
+                        new SakuraSystem('bg-canvas');
+                        
+                        loader.classList.add('hidden');
+                        setTimeout(() => {
+                            this.el.classList.add('ready');
+                            this.handleInitialHash();
+                        }, 500);
+
+                    } else {
+                        throw new Error();
+                    }
+                } catch (e) {
+                    loader.classList.add('hidden');
+                    this.el.innerHTML = '<div style="text-align:center; color: var(--text-muted); font-size: 0.9rem;">无法加载日记，请确保在本地服务器环境下运行。</div>';
+                    setTimeout(() => this.el.classList.add('ready'), 500);
+                }
+            }
+
+            parseToml(raw) {
+                const config = {};
+                let text = raw;
+                const multiRegex = /([a-zA-Z0-9_]+)\s*=\s*"""([\s\S]*?)"""/g;
+                let m;
+                while ((m = multiRegex.exec(raw)) !== null) {
+                    config[m[1]] = m[2].trim();
+                    text = text.replace(m[0], '');
+                }
+                const singleRegex = /([a-zA-Z0-9_]+)\s*=\s*"([^"]*)"/g;
+                while ((m = singleRegex.exec(text)) !== null) {
+                    config[m[1]] = m[2].trim();
+                }
+                return config;
+            }
+
+            applyConfig(c) {
+                if (c.title) document.getElementById('doc-title').innerText = c.title;
+                if (c.theme_color) document.getElementById('theme-color').content = c.theme_color;
+                
+                if (c.icon) {
+                    let link = document.createElement('link');
+                    link.rel = 'icon';
+                    link.href = c.icon;
+                    document.head.appendChild(link);
+                }
+
+                if (c.header_title) document.getElementById('site-title').innerText = c.header_title;
+                if (c.header_subtitle) document.getElementById('site-subtitle').innerHTML = c.header_subtitle.replace(/\n/g, '<br>');
+                
+                const cornerBtn = document.getElementById('corner-link');
+                if (c.home_url) {
+                    cornerBtn.href = c.home_url;
+                    cornerBtn.innerText = c.home_url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+                    cornerBtn.style.display = 'block';
+                }
+
+                if (c.font) {
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        @font-face {
+                            font-family: 'ConfigFont';
+                            src: url('${c.font}');
+                            font-display: swap;
+                        }
+                        body { font-family: 'ConfigFont', system-ui, -apple-system, sans-serif !important; }
+                    `;
+                    document.head.appendChild(style);
+                }
+            }
+
+            bindGlobalEvents() {
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.card') && window.location.hash) {
+                        history.replaceState(null, '', window.location.pathname + window.location.search);
+                    }
+                });
+            }
+
+            handleInitialHash() {
+                const hash = window.location.hash;
+                if (/^#\d+$/.test(hash)) {
+                    const target = document.getElementById('post-' + hash.substring(1));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        const card = target.querySelector('.card');
+                        card.style.animation = 'targetPulse 2.5s cubic-bezier(0.22, 1, 0.36, 1)';
+                    }
+                }
+            }
+
+            parse(raw) {
+                let idCounter = 1;
+                return raw.split('\n---\n').map(block => {
+                    const lines = block.trim().split('\n');
+                    if (lines.length < 2) return null;
+                    const date = lines.shift().trim();
+                    const tags = [];
+                    const imgStore = [];
+                    
+                    if (lines.length > 0) {
+                        lines[0] = lines[0].replace(/#([^\s#]+)/g, (_, tag) => {
+                            tags.push(tag);
+                            return `<span class="card-tag">#${tag}</span>`;
+                        });
+                    }
+                    
+                    const processedLines = lines.map(line => {
+                        let p = line;
+                        
+                        p = p.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, url) => {
+                            imgStore.push({ alt, url });
+                            return `__IMG_${imgStore.length - 1}__`;
+                        });
+                        
+                        p = p.replace(/(https?:\/\/[^\s<]+)/g, (match, url) => {
+                            let cleanUrl = url;
+                            let trailing = '';
+                            const matchPunc = url.match(/([.,;:!?。，、！？]+)$/);
+                            if (matchPunc) {
+                                cleanUrl = url.substring(0, url.length - matchPunc[0].length);
+                                trailing = matchPunc[0];
+                            }
+                            const displayUrl = cleanUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+                            return `<a href="${cleanUrl}" target="_blank" class="card-link" rel="noopener noreferrer">${displayUrl}</a>${trailing}`;
+                        });
+                        
+                        p = p.replace(/__IMG_(\d+)__/g, (_, idx) => {
+                            const { alt, url } = imgStore[idx];
+                            return `<img src="${url}" alt="${alt}" class="card-img" loading="lazy" />`;
+                        });
+                        
+                        return p;
+                    });
+
+                    return { id: idCounter++, date, text: processedLines.join('<br>'), tags };
+                }).filter(Boolean);
+            }
+
+            renderTags() {
+                const set = new Set();
+                this.items.forEach(i => i.tags.forEach(t => set.add(t)));
+                const unique = Array.from(set);
+                
+                if (!unique.length) {
+                    this.tagsEl.style.display = 'none';
+                    return;
+                }
+
+                this.tagsEl.innerHTML = unique.map(t => `<button class="tag" data-val="${t}">#${t}</button>`).join('');
+                
+                this.tagsEl.addEventListener('click', e => {
+                    if (e.target.tagName === 'BUTTON') {
+                        const val = e.target.dataset.val;
+                        this.active = this.active === val ? null : val;
+                        
+                        Array.from(this.tagsEl.children).forEach(btn => {
+                            btn.classList.toggle('active', btn.dataset.val === this.active);
+                        });
+                        
+                        this.render();
+                    }
+                });
+            }
+
+            render() {
+                this.el.innerHTML = '';
+                const filtered = this.active ? this.items.filter(i => i.tags.includes(this.active)) : this.items;
+
+                filtered.forEach((item, i) => {
+                    const node = document.createElement('article');
+                    node.className = 'item';
+                    node.id = `post-${item.id}`;
+                    node.style.animationDelay = `${i * 0.1}s`;
+
+                    const isLast = i === filtered.length - 1;
+                    const line = isLast ? 'background: transparent;' : '';
+
+                    node.innerHTML = `
+                        <div class="track">
+                            <div class="node"></div>
+                            <div class="line" style="${line}"></div>
+                        </div>
+                        <div class="content">
+                            <time class="date">${item.date}</time>
+                            <div class="card">
+                                <span class="card-id">#${item.id}</span>
+                                <div class="card-inner">${item.text}</div>
+                                <div class="card-mask"><span class="ellipsis">...</span></div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    const card = node.querySelector('.card');
+                    const inner = node.querySelector('.card-inner');
+                    
+                    card.addEventListener('click', (e) => {
+                        if (e.target.closest('a')) return;
+                        if (e.target.tagName === 'IMG' && card.classList.contains('expanded')) return;
+                        
+                        history.replaceState(null, '', '#' + item.id);
+                        
+                        if (!card.classList.contains('has-more')) return;
+                        const isExpanded = card.classList.toggle('expanded');
+                        
+                        if (isExpanded) {
+                            inner.style.maxHeight = `${inner.scrollHeight}px`;
+                        } else {
+                            inner.style.maxHeight = '';
+                        }
+                    });
+
+                    this.el.appendChild(node);
+                });
+
+                requestAnimationFrame(() => {
+                    document.querySelectorAll('.card').forEach(card => {
+                        const inner = card.querySelector('.card-inner');
+                        const checkHeight = () => {
+                            if (inner.scrollHeight > inner.clientHeight + 2) {
+                                card.classList.add('has-more');
+                            }
+                        };
+                        checkHeight();
+                        inner.querySelectorAll('img').forEach(img => img.addEventListener('load', checkHeight));
+                    });
+                    
+                    mediumZoom('.card-img', {
+                        margin: 24,
+                        background: 'rgba(253, 251, 251, 0.9)'
+                    });
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new Application().bootstrap();
+        });
+    </script>
+</body>
+</html>
