@@ -1,0 +1,16 @@
+name: Trigger Cloudflare Pages Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'index.html'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Webhook
+        run: curl -s -X POST "${{ secrets.CF_DEPLOY_HOOK }}" > /dev/null
