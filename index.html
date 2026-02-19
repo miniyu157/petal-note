@@ -515,19 +515,14 @@
             parseToml(raw) {
                 const config = {};
                 let text = raw;
-                const multiRegex = /([a-zA-Z0-9_]+)\s*=\s*"""([\s\S]*?)"""/g;
-                let m;
-                while ((m = multiRegex.exec(raw)) !== null) {
+                for (const m of raw.matchAll(/([a-zA-Z0-9_]+)\s*=\s*"""([\s\S]*?)"""/g)) {
                     config[m[1]] = m[2].trim();
                     text = text.replace(m[0], '');
                 }
-                const singleRegex = /([a-zA-Z0-9_]+)\s*=\s*"([^"]*)"/g;
-                while ((m = singleRegex.exec(text)) !== null) {
+                for (const m of text.matchAll(/([a-zA-Z0-9_]+)\s*=\s*"([^"]*)"/g)) {
                     config[m[1]] = m[2].trim();
-                    text = text.replace(m[0], '');
                 }
-                const numRegex = /([a-zA-Z0-9_]+)\s*=\s*(\d+)/g;
-                while ((m = numRegex.exec(text)) !== null) {
+                for (const m of text.matchAll(/([a-zA-Z0-9_]+)\s*=\s*(\d+)/g)) {
                     config[m[1]] = parseInt(m[2], 10);
                 }
                 return config;
