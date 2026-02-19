@@ -1,10 +1,10 @@
 title = "Petal"
 icon = "./assets/favicon.ico"
-header_title = "Petal"
+header_title = "Petal Note"
 header_subtitle = """
 风吹落的花瓣，和那些无处安放的碎碎念。
 """
-home_url = ""
+home_url = "https://github.com/miniyu157/petal-note"
 theme_color = "#FFB6C1"
 font = "./assets/font.ttf"
 load_delay = 800

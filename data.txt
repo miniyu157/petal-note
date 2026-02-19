@@ -1,6 +1,13 @@
+2026-02-09 14:00
+#碎碎念
+如果你喜欢，请在 GitHub 上帮我点个 Star 哦！✨
+也欢迎在 Issues 中提出任何建议和意见。
+https://github.com/miniyu157/petal-note
+https://github.com/miniyu157/petal-note/issues
+---
 Petal 配置文件
 #用法
-配置文件是 config.toml，可以定义一些基础配置，例如页面边上的 URL、浏览器选项卡颜色、标语等等，就像主流的博客框架那样。
+配置文件是 config.toml，可以定义一些基础配置，例如页面边上的 URL、浏览器选项卡颜色、标语、字体等等，就像主流的博客框架那样。
 ---
 Petal 数据与渲染
 #用法
@@ -13,11 +20,15 @@ Petal 数据与渲染
 Petal 正文
 #用法
 每条碎碎念由 '---' 分割，第一行为时间线添加描述，可以是时间戳，也可以是任意文本；第二行及以下为正文，正文第一行中的 #XXX 解析为为标签，可以在顶部按照标签过滤。
-正文中可以使用 markdown 图片语法以渲染图片，别忘了在前面加上 '!' 哦。带有 https:// 或 http:// 的 URL也会被渲染为可点击的超链接。
+---
+Petal 格式
+#用法
+正文中可以使用简单的 markdown 图片语法以渲染图片，别忘了在前面加上 '!' 哦。带有 https:// 或 http:// 的 URL也会被渲染为可点击的超链接。单击此处即可展开查看图片
+![logo](./repo_asssets/favicon.png)
 ---
 Petal 分享
 #用法
-单击卡片后自动为 URL 添加序号，页面加载时会自动跳转到那个卡片。序号可以通过点击空白处消除。
+单击卡片后自动为 URL 添加序号，页面加载时会自动跳转到那个卡片，序号可以通过点击空白处消除。
 ---
 check
 #测试
@@ -25,7 +36,7 @@ check
 ---
 check
 #测试 此处是正文，可以和标签在同一行
-https://bing.com/ https://bing.com/
+https://github.com/miniyu157/petal-note
 ---
 check
 #测试
