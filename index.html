@@ -321,7 +321,30 @@
             display: block;
         }
 
-        .card.has-more:not(.expanded) .card-img {
+        .gallery {
+            display: grid;
+            gap: 0.4rem;
+            margin-block: 0.6rem;
+        }
+
+        .gallery.grid-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .gallery.grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .gallery .card-img {
+            margin: 0;
+            aspect-ratio: 1;
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+        }
+
+        .card.has-more:not(.expanded) .card-img,
+        .card.has-more:not(.expanded) .gallery {
             pointer-events: none;
         }
 
@@ -630,7 +653,14 @@
                     });
 
                     let finalHtml = processedLines.join('<br>');
+                    
                     finalHtml = finalHtml.replace(/(?:<br>)*\s*(<img[^>]+>)\s*(?:<br>)*/g, '$1');
+                    
+                    finalHtml = finalHtml.replace(/(<img[^>]+>){2,}/g, match => {
+                        const count = (match.match(/<img/g) || []).length;
+                        const gridClass = (count === 2 || count === 4) ? 'grid-2' : 'grid-3';
+                        return `<div class="gallery ${gridClass}">${match}</div>`;
+                    });
 
                     const id = isAsc ? index + 1 : total - index;
                     return { id, date, text: finalHtml, tags };
