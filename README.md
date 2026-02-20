@@ -70,6 +70,7 @@ Petal 是一个极简, 唯美, 无需任何构建工具链的纯前端日记/碎
 用于定义站点的全局信息, 包括标题, 描述, 图标以及字体设置, 所有项均为可选
 
 ```toml
+data_source = "./data.txt"
 title = "Petal"
 icon = "./assets/favicon.ico"
 header_title = "Petal"

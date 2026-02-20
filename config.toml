@@ -1,3 +1,4 @@
+data_source = "./data.txt"
 title = "Petal"
 icon = "./assets/favicon.ico"
 header_title = "Petal Note"

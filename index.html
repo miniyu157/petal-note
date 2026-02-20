@@ -468,18 +468,13 @@
                 const loader = document.getElementById('loader');
 
                 try {
-                    const [dataRes, configRes] = await Promise.allSettled([
-                        fetch('data.txt'),
-                        fetch('config.toml')
-                    ]);
+                    const configRes = await fetch('config.toml');
+                    if (!configRes.ok) throw new Error('Config missing');
 
-                    if (configRes.status === 'fulfilled' && configRes.value.ok) {
-                        const rawConfig = await configRes.value.text();
-                        
-                        const { parse } = await import('https://esm.sh/smol-toml@1.3.0');
-                        this.config = parse(rawConfig);
-                        this.applyConfig(this.config);
-                    }
+                    const rawConfig = await configRes.text();
+                    const { parse } = await import('https://esm.sh/smol-toml@1.3.0');
+                    this.config = parse(rawConfig);
+                    this.applyConfig(this.config);
 
                     await document.fonts.ready;
 
@@ -488,28 +483,32 @@
                         await new Promise(r => setTimeout(r, delay));
                     }
 
-                    if (dataRes.status === 'fulfilled' && dataRes.value.ok) {
-                        const text = await dataRes.value.text();
-                        if (text.trim().startsWith('<')) throw new Error('Data format error');
-                        
-                        this.items = this.parse(text);
-                        this.renderTags();
-                        this.render();
-                        new SakuraSystem('bg-canvas');
-                        
-                        loader.classList.add('hidden');
-                        setTimeout(() => {
-                            this.el.classList.add('ready');
-                            this.handleInitialHash();
-                        }, 500);
-
-                    } else {
-                        throw new Error('Data not found');
+                    const dataSource = this.config.data_source;
+                    if (!dataSource) {
+                        throw new Error('Absolute source truth broken');
                     }
+
+                    const dataRes = await fetch(dataSource);
+                    if (!dataRes.ok) throw new Error('Data fetch failed');
+                    
+                    const text = await dataRes.text();
+                    if (text.trim().startsWith('<')) throw new Error('Data format error');
+                    
+                    this.items = this.parse(text);
+                    this.renderTags();
+                    this.render();
+                    new SakuraSystem('bg-canvas');
+                    
+                    loader.classList.add('hidden');
+                    setTimeout(() => {
+                        this.el.classList.add('ready');
+                        this.handleInitialHash();
+                    }, 500);
+
                 } catch (e) {
                     new SakuraSystem('bg-canvas');
                     loader.classList.add('hidden');
-                    this.el.innerHTML = '<div style="text-align:center; color: var(--text-muted); font-size: 0.95rem; letter-spacing: 0.05em; margin-block-start: 2rem;">没有找到散落的花瓣，请先种下 data.txt 吧。</div>';
+                    this.el.innerHTML = '<div style="text-align:center; color: var(--text-muted); font-size: 0.95rem; letter-spacing: 0.05em; margin-block-start: 2rem;">没有找到散落的花瓣，请在 config.toml 中指明 data_source 的归处吧。</div>';
                     setTimeout(() => this.el.classList.add('ready'), 500);
                 }
             }
