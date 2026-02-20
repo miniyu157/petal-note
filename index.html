@@ -475,7 +475,9 @@
 
                     if (configRes.status === 'fulfilled' && configRes.value.ok) {
                         const rawConfig = await configRes.value.text();
-                        this.config = this.parseToml(rawConfig);
+                        
+                        const { parse } = await import('https://esm.sh/smol-toml@1.3.0');
+                        this.config = parse(rawConfig);
                         this.applyConfig(this.config);
                     }
 
@@ -510,25 +512,6 @@
                     this.el.innerHTML = '<div style="text-align:center; color: var(--text-muted); font-size: 0.95rem; letter-spacing: 0.05em; margin-block-start: 2rem;">没有找到散落的花瓣，请先种下 data.txt 吧。</div>';
                     setTimeout(() => this.el.classList.add('ready'), 500);
                 }
-            }
-
-            parseToml(raw) {
-                const config = {};
-                let text = raw;
-                for (const m of raw.matchAll(/([a-zA-Z0-9_]+)\s*=\s*"""([\s\S]*?)"""/g)) {
-                    config[m[1]] = m[2].trim();
-                    text = text.replace(m[0], '');
-                }
-                for (const m of text.matchAll(/([a-zA-Z0-9_]+)\s*=\s*"([^"]*)"/g)) {
-                    config[m[1]] = m[2].trim();
-                }
-                for (const m of text.matchAll(/([a-zA-Z0-9_]+)\s*=\s*(\d+)/g)) {
-                    config[m[1]] = parseInt(m[2], 10);
-                }
-                for (const m of text.matchAll(/([a-zA-Z0-9_]+)\s*=\s*(true|false)/g)) {
-                    config[m[1]] = m[2] === 'true';
-                }
-                return config;
             }
 
             applyConfig(c) {
@@ -745,4 +728,3 @@
     </script>
 </body>
 </html>
-

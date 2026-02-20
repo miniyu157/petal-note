@@ -79,7 +79,9 @@ header_subtitle = """
 home_url = ""
 theme_color = "#FFB6C1"
 font = "./assets/font.ttf"
-load_delay = 800
+load_delay = 800 # ms
+data_order = "asc" # [asc|desc]
+
 ```
 
 ### 📖 data.txt
