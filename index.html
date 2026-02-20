@@ -629,8 +629,11 @@
                         return p;
                     });
 
+                    let finalHtml = processedLines.join('<br>');
+                    finalHtml = finalHtml.replace(/(?:<br>)*\s*(<img[^>]+>)\s*(?:<br>)*/g, '$1');
+
                     const id = isAsc ? index + 1 : total - index;
-                    return { id, date, text: processedLines.join('<br>'), tags };
+                    return { id, date, text: finalHtml, tags };
                 });
 
                 return isAsc ? parsedData.reverse() : parsedData;
