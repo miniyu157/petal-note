@@ -460,12 +460,12 @@
                 this.tagsEl = document.getElementById('tags');
                 this.items = [];
                 this.active = null;
+                this.config = {}; 
             }
 
             async bootstrap() {
                 this.bindGlobalEvents();
                 const loader = document.getElementById('loader');
-                let config = {};
 
                 try {
                     const [dataRes, configRes] = await Promise.allSettled([
@@ -475,13 +475,13 @@
 
                     if (configRes.status === 'fulfilled' && configRes.value.ok) {
                         const rawConfig = await configRes.value.text();
-                        config = this.parseToml(rawConfig);
-                        this.applyConfig(config);
+                        this.config = this.parseToml(rawConfig);
+                        this.applyConfig(this.config);
                     }
 
                     await document.fonts.ready;
 
-                    const delay = config.load_delay || 0;
+                    const delay = this.config.load_delay || 0;
                     if (delay > 0) {
                         await new Promise(r => setTimeout(r, delay));
                     }
@@ -524,6 +524,9 @@
                 }
                 for (const m of text.matchAll(/([a-zA-Z0-9_]+)\s*=\s*(\d+)/g)) {
                     config[m[1]] = parseInt(m[2], 10);
+                }
+                for (const m of text.matchAll(/([a-zA-Z0-9_]+)\s*=\s*(true|false)/g)) {
+                    config[m[1]] = m[2] === 'true';
                 }
                 return config;
             }
@@ -584,10 +587,16 @@
             }
 
             parse(raw) {
-                let idCounter = 1;
-                return raw.split('\n---\n').map(block => {
-                    const lines = block.trim().split('\n');
-                    if (lines.length < 2) return null;
+                const isAsc = this.config.data_order === 'asc';
+
+                const blocks = raw.split('\n---\n')
+                    .map(b => b.trim())
+                    .filter(b => b && b.split('\n').length >= 2);
+
+                const total = blocks.length;
+
+                const parsedData = blocks.map((block, index) => {
+                    const lines = block.split('\n');
                     const date = lines.shift().trim();
                     const tags = [];
                     const imgStore = [];
@@ -627,8 +636,11 @@
                         return p;
                     });
 
-                    return { id: idCounter++, date, text: processedLines.join('<br>'), tags };
-                }).filter(Boolean);
+                    const id = isAsc ? index + 1 : total - index;
+                    return { id, date, text: processedLines.join('<br>'), tags };
+                });
+
+                return isAsc ? parsedData.reverse() : parsedData;
             }
 
             renderTags() {
@@ -733,3 +745,4 @@
     </script>
 </body>
 </html>
+

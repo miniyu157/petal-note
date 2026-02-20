@@ -8,3 +8,5 @@ home_url = "https://github.com/miniyu157/petal-note"
 theme_color = "#FFB6C1"
 font = "./assets/font.ttf"
 load_delay = 800
+data_order = "asc"
+
