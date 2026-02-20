@@ -8,6 +8,7 @@ check
 check
 #测试 此处是正文，可以和标签在同一行
 https://github.com/miniyu157/petal-note
+[超链接](https://github.com/miniyu157/petal-note)
 ---
 check
 #测试
@@ -40,8 +41,7 @@ Petal 配置文件
 ---
 2026-02-09 14:00
 #碎碎念
-如果你喜欢，请在 GitHub 上帮我点个 Star 哦！✨
-也欢迎在 Issues 中提出任何建议和意见。
-https://github.com/miniyu157/petal-note
-https://github.com/miniyu157/petal-note/issues
+如果你喜欢，请在 [GitHub](https://github.com/miniyu157/petal-note) 上帮我点个 Star 哦！✨
+也欢迎在 [Issues](https://github.com/miniyu157/petal-note/issues) 中提出任何建议和意见。
+
 ---

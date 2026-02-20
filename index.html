@@ -582,6 +582,7 @@
                     const date = lines.shift().trim();
                     const tags = [];
                     const imgStore = [];
+                    const linkStore = [];
                     
                     if (lines.length > 0) {
                         lines[0] = lines[0].replace(/#([^\s#]+)/g, (_, tag) => {
@@ -597,6 +598,11 @@
                             imgStore.push({ alt, url });
                             return `__IMG_${imgStore.length - 1}__`;
                         });
+
+                        p = p.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, url) => {
+                            linkStore.push({ text, url });
+                            return `__LNK_${linkStore.length - 1}__`;
+                        });
                         
                         p = p.replace(/(https?:\/\/[^\s<]+)/g, (match, url) => {
                             let cleanUrl = url;
@@ -608,6 +614,11 @@
                             }
                             const displayUrl = cleanUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
                             return `<a href="${cleanUrl}" target="_blank" class="card-link" rel="noopener noreferrer">${displayUrl}</a>${trailing}`;
+                        });
+
+                        p = p.replace(/__LNK_(\d+)__/g, (_, idx) => {
+                            const { text, url } = linkStore[idx];
+                            return `<a href="${url}" target="_blank" class="card-link" rel="noopener noreferrer">${text}</a>`;
                         });
                         
                         p = p.replace(/__IMG_(\d+)__/g, (_, idx) => {
