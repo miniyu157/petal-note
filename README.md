@@ -83,6 +83,8 @@ theme_color = "#FFB6C1"
 font = "./assets/font.ttf"
 load_delay = 800 # ms
 data_order = "asc" # [asc|desc]
+private_source = "./private.txt"
+private_tip="输入轻语解锁梦境..."
 ```
 
 ### 📖 data.txt

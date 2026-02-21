@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta id="theme-color" name="theme-color" content="">
     <title id="doc-title"></title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.9.1/fonts/remixicon.min.css" rel="stylesheet">
     <style>
         :root {
             --text-main: #5c4b51;
@@ -12,6 +13,16 @@
             --timeline-accent: #f4c2c2;
             --card-bg-blur: rgb(255 255 255 / 65%);
             --rose-ellipsis: #d88c9a;
+            --bg-gradient-start: #fdfbfb;
+            --bg-gradient-end: #f1f3f4;
+            --private-accent: #f2c6d0;
+        }
+
+        body.private-mode {
+            --bg-gradient-start: #fdf5f7;
+            --bg-gradient-end: #f4e8eb;
+            --timeline-accent: #e8a0b0;
+            --card-bg-blur: rgb(255 253 254 / 75%);
         }
 
         *, *::before, *::after {
@@ -21,13 +32,14 @@
         body {
             margin: 0;
             font-family: system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #fdfbfb 0%, #f1f3f4 100%);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             color: var(--text-main);
             min-height: 100dvh;
             overflow-x: hidden;
             position: relative;
             display: flex;
             flex-direction: column;
+            transition: background 1.2s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         #loader {
@@ -67,6 +79,122 @@
             z-index: -1; 
         }
 
+        #dream-transition {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, #fff0f5 0%, #fdf5f7 50%, #f4e8eb 100%);
+            opacity: 0;
+            visibility: hidden;
+            z-index: 9998;
+            transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 1.2s;
+        }
+
+        #dream-transition.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #secret-petal {
+            position: fixed;
+            top: 2rem;
+            left: 2.5rem;
+            font-size: 1.4rem;
+            color: var(--text-muted);
+            opacity: 0;
+            visibility: hidden;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #secret-petal.visible {
+            opacity: 0.15;
+            visibility: visible;
+        }
+
+        @media (hover: hover) {
+            #secret-petal.visible:hover {
+                opacity: 0.8;
+                transform: scale(1.1) rotate(15deg);
+            }
+        }
+
+        #secret-petal.visible.touched {
+            opacity: 0.8;
+            transform: scale(1.1) rotate(15deg);
+        }
+
+        #secret-petal.unlocked {
+            opacity: 0.9 !important;
+            color: #eebb4d;
+            filter: drop-shadow(0 0 10px rgb(238 187 77 / 50%));
+            transform: scale(1.15) !important;
+        }
+
+        #pwd-modal {
+            position: fixed;
+            inset: 0;
+            background: rgb(253 251 251 / 40%);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+        }
+
+        #pwd-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #pwd-input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid rgb(216 140 154 / 30%);
+            color: var(--text-main);
+            font-size: 1.2rem;
+            text-align: center;
+            padding: 0.5rem 1rem;
+            width: 260px;
+            outline: none;
+            font-family: inherit;
+            letter-spacing: 0.1em;
+            transition: border-color 0.4s ease;
+        }
+
+        #pwd-input:focus {
+            border-bottom-color: var(--timeline-accent);
+        }
+
+        #pwd-input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.6;
+            font-weight: 300;
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgb(242 198 208 / 80%) 0%, transparent 70%);
+            transform: scale(0);
+            animation: ripple-anim 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        @keyframes ripple-anim {
+            to { transform: scale(4); opacity: 0; }
+        }
+
+        @media (max-width: 600px) {
+            #secret-petal { top: 1.5rem; left: 1.5rem; }
+        }
+
         .corner-link {
             position: absolute;
             top: 2rem;
@@ -82,15 +210,10 @@
             display: none;
         }
 
-        .corner-link:hover {
-            opacity: 0.8;
-        }
+        .corner-link:hover { opacity: 0.8; }
 
         @media (max-width: 600px) {
-            .corner-link {
-                top: 1.5rem;
-                right: 1.5rem;
-            }
+            .corner-link { top: 1.5rem; right: 1.5rem; }
         }
 
         .container {
@@ -112,6 +235,7 @@
                 margin-block: 0 0.5rem;
                 font-size: 1.8rem;
                 min-height: 1.8rem;
+                transition: color 1s ease;
             }
 
             & p {
@@ -121,6 +245,10 @@
                 line-height: 1.6;
                 min-height: 1.4rem;
             }
+        }
+
+        body.private-mode header h1 {
+            color: var(--private-accent);
         }
 
         .tags {
@@ -153,9 +281,7 @@
                 }
             }
 
-            &:active {
-                transform: scale(0.92);
-            }
+            &:active { transform: scale(0.92); }
 
             &.active {
                 background: var(--timeline-accent);
@@ -209,6 +335,7 @@
                 margin-block-top: 0.5em; 
                 position: relative;
                 z-index: 2;
+                transition: all 0.6s ease;
             }
 
             & .line {
@@ -216,7 +343,31 @@
                 flex-grow: 1;
                 background-color: var(--timeline-accent);
                 opacity: 0.5;
+                transition: background 0.6s ease, opacity 0.6s ease;
             }
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { box-shadow: 0 0 8px 2px rgb(242 198 208 / 40%); transform: scale(1); }
+            50% { box-shadow: 0 0 16px 5px rgb(242 198 208 / 80%); transform: scale(1.15); }
+        }
+
+        @keyframes flowLight {
+            0% { background-position: 0 -200%; }
+            100% { background-position: 0 200%; }
+        }
+
+        body.private-mode .track .node {
+            border-color: var(--private-accent);
+            animation: heartbeat 2.5s ease-in-out infinite;
+        }
+
+        body.private-mode .track .line {
+            background: linear-gradient(to bottom, transparent, var(--private-accent), transparent);
+            background-size: 100% 200%;
+            animation: flowLight 3.5s linear infinite;
+            opacity: 0.8;
+            background-color: transparent;
         }
 
         .content {
@@ -240,7 +391,7 @@
             border-radius: 6px;
             border: 1px solid rgb(255 255 255 / 40%);
             box-shadow: 0 2px 8px rgb(0 0 0 / 3%);
-            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease, background 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.6s ease, background 0.6s ease;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
             overflow: hidden;
@@ -255,8 +406,16 @@
             &:active {
                 transform: scale(0.97);
                 box-shadow: inset 0 1px 3px rgb(0 0 0 / 4%);
-                background: rgb(255 255 255 / 45%);
             }
+        }
+
+        body.private-mode .card {
+            box-shadow: 0 4px 20px rgb(242 198 208 / 15%), inset 0 0 15px rgb(255 255 255 / 70%);
+            border-color: rgb(255 255 255 / 60%);
+        }
+
+        body.private-mode .card:hover {
+            box-shadow: 0 6px 24px rgb(242 198 208 / 25%), inset 0 0 15px rgb(255 255 255 / 70%);
         }
 
         .card-id {
@@ -272,9 +431,7 @@
             z-index: 2;
         }
 
-        .card:hover .card-id {
-            opacity: 0.5;
-        }
+        .card:hover .card-id { opacity: 0.5; }
 
         .card-inner {
             padding: 1.2rem 1.4rem;
@@ -285,9 +442,7 @@
             transition: max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        .card.expanded .card-inner {
-            max-height: 2000px;
-        }
+        .card.expanded .card-inner { max-height: 2000px; }
 
         .card-tag {
             color: var(--rose-ellipsis);
@@ -327,13 +482,8 @@
             margin-block: 0.6rem;
         }
 
-        .gallery.grid-2 {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .gallery.grid-3 {
-            grid-template-columns: repeat(3, 1fr);
-        }
+        .gallery.grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .gallery.grid-3 { grid-template-columns: repeat(3, 1fr); }
 
         .gallery .card-img {
             margin: 0;
@@ -365,14 +515,12 @@
             z-index: 1;
         }
 
-        .card.has-more:not(.expanded) .card-mask {
-            display: flex;
+        body.private-mode .card-mask {
+            background: linear-gradient(to bottom, transparent, rgb(255 253 254 / 85%) 50%, rgb(255 253 254 / 98%) 100%);
         }
 
-        .card.has-more.expanded .card-mask {
-            display: flex;
-            opacity: 0;
-        }
+        .card.has-more:not(.expanded) .card-mask { display: flex; }
+        .card.has-more.expanded .card-mask { display: flex; opacity: 0; }
 
         .ellipsis {
             color: var(--rose-ellipsis);
@@ -387,12 +535,17 @@
 </head>
 <body>
 
-    <div id="loader">
-        <div class="loader-dot"></div>
+    <div id="loader"><div class="loader-dot"></div></div>
+    
+    <div id="dream-transition"></div>
+
+    <i id="secret-petal" class="ri-flower-fill"></i>
+    
+    <div id="pwd-modal">
+        <input type="text" id="pwd-input" placeholder="输入轻语解锁梦境..." autocomplete="off">
     </div>
 
     <a id="corner-link" target="_blank" rel="noopener noreferrer" class="corner-link"></a>
-
     <canvas id="bg-canvas"></canvas>
 
     <div class="container">
@@ -408,6 +561,30 @@
     <script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script>
 
     <script>
+        const CryptoSys = {
+            async deriveKey(password) {
+                const encoder = new TextEncoder();
+                const hash = await crypto.subtle.digest('SHA-256', encoder.encode(password));
+                return crypto.subtle.importKey('raw', hash, { name: 'AES-GCM' }, false, ['decrypt']);
+            },
+            async decrypt(base64Data, password) {
+                try {
+                    const raw = atob(base64Data);
+                    const buf = new Uint8Array(raw.length);
+                    for (let i = 0; i < raw.length; i++) buf[i] = raw.charCodeAt(i);
+                    
+                    const iv = buf.slice(0, 12);
+                    const data = buf.slice(12);
+                    
+                    const key = await this.deriveKey(password);
+                    const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
+                    return new TextDecoder().decode(decrypted);
+                } catch (e) {
+                    return null;
+                }
+            }
+        };
+
         class SakuraSystem {
             constructor(id) {
                 this.canvas = document.getElementById(id);
@@ -467,8 +644,9 @@
                     this.ctx.bezierCurveTo(15, -30, 15, -15, 0, 0);
                     
                     const g = this.ctx.createLinearGradient(0, -30, 0, 0);
+                    const isPrivate = document.body.classList.contains('private-mode');
                     g.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-                    g.addColorStop(1, 'rgba(255, 197, 208, 0.7)');
+                    g.addColorStop(1, isPrivate ? 'rgba(242, 198, 208, 0.8)' : 'rgba(255, 197, 208, 0.7)');
                     this.ctx.fillStyle = g;
                     this.ctx.fill();
                     this.ctx.restore();
@@ -481,9 +659,18 @@
             constructor() {
                 this.el = document.getElementById('timeline');
                 this.tagsEl = document.getElementById('tags');
-                this.items = [];
-                this.active = null;
+                this.petalBtn = document.getElementById('secret-petal');
+                this.pwdModal = document.getElementById('pwd-modal');
+                this.pwdInput = document.getElementById('pwd-input');
+                this.dreamTransition = document.getElementById('dream-transition');
+                
                 this.config = {}; 
+                this.publicItems = [];
+                this.privateItems = [];
+                this.activeTags = { public: null, private: null };
+                
+                this.isPrivateMode = false;
+                this.rawPrivateData = null; 
             }
 
             async bootstrap() {
@@ -502,14 +689,15 @@
                     await document.fonts.ready;
 
                     const delay = this.config.load_delay || 0;
-                    if (delay > 0) {
-                        await new Promise(r => setTimeout(r, delay));
+                    if (delay > 0) await new Promise(r => setTimeout(r, delay));
+
+                    if (this.config.private_source) {
+                        this.petalBtn.classList.add('visible');
+                        this.initPrivateEvents();
                     }
 
                     const dataSource = this.config.data_source;
-                    if (!dataSource) {
-                        throw new Error('Absolute source truth broken');
-                    }
+                    if (!dataSource) throw new Error('Absolute source truth broken');
 
                     const dataRes = await fetch(dataSource);
                     if (!dataRes.ok) throw new Error('Data fetch failed');
@@ -517,7 +705,7 @@
                     const text = await dataRes.text();
                     if (text.trim().startsWith('<')) throw new Error('Data format error');
                     
-                    this.items = this.parse(text);
+                    this.publicItems = this.parse(text);
                     this.renderTags();
                     this.render();
                     new SakuraSystem('bg-canvas');
@@ -536,9 +724,81 @@
                 }
             }
 
+            async switchDreamMode(toPrivate, decryptedData = null) {
+                this.dreamTransition.classList.add('active');
+                await new Promise(r => setTimeout(r, 1000));
+                
+                this.el.classList.remove('ready');
+
+                if (toPrivate) {
+                    if (decryptedData) this.privateItems = this.parse(decryptedData);
+                    this.isPrivateMode = true;
+                    document.body.classList.add('private-mode');
+                    this.petalBtn.classList.add('unlocked');
+                } else {
+                    this.isPrivateMode = false;
+                    document.body.classList.remove('private-mode');
+                    this.petalBtn.classList.remove('unlocked');
+                }
+
+                this.renderTags();
+                this.render();
+                
+                this.dreamTransition.classList.remove('active');
+                setTimeout(() => this.el.classList.add('ready'), 50);
+            }
+
+            initPrivateEvents() {
+                this.petalBtn.addEventListener('click', async () => {
+                    this.petalBtn.classList.add('touched');
+                    setTimeout(() => this.petalBtn.classList.remove('touched'), 400);
+
+                    if (this.isPrivateMode) {
+                        this.switchDreamMode(false);
+                    } else {
+                        if (this.privateItems.length > 0) {
+                            this.switchDreamMode(true);
+                        } else {
+                            this.pwdInput.value = '';
+                            this.pwdModal.classList.add('active');
+                            if (!this.rawPrivateData) {
+                                try {
+                                    const res = await fetch(this.config.private_source);
+                                    if (res.ok) this.rawPrivateData = (await res.text()).trim();
+                                } catch (err) {}
+                            }
+                        }
+                    }
+                });
+
+                this.pwdModal.addEventListener('click', (e) => {
+                    if (e.target === this.pwdModal) this.pwdModal.classList.remove('active');
+                });
+
+                this.pwdInput.addEventListener('input', async (e) => {
+                    const pwd = e.target.value;
+                    if (!pwd || !this.rawPrivateData) return;
+
+                    const decrypted = await CryptoSys.decrypt(this.rawPrivateData, pwd);
+                    if (decrypted) {
+                        this.pwdInput.value = '';
+                        this.pwdModal.classList.remove('active');
+                        this.switchDreamMode(true, decrypted);
+                    }
+                });
+
+                this.pwdInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        this.pwdModal.classList.remove('active');
+                    }
+                });
+            }
+
             applyConfig(c) {
                 if (c.title) document.getElementById('doc-title').innerText = c.title;
                 if (c.theme_color) document.getElementById('theme-color').content = c.theme_color;
+                
+                if (c.private_tip) this.pwdInput.placeholder = c.private_tip;
                 
                 if (c.icon) {
                     let link = document.createElement('link');
@@ -546,7 +806,6 @@
                     link.href = c.icon;
                     document.head.appendChild(link);
                 }
-
                 if (c.header_title) document.getElementById('site-title').innerText = c.header_title;
                 if (c.header_subtitle) document.getElementById('site-subtitle').innerHTML = c.header_subtitle.replace(/\n/g, '<br>');
                 
@@ -556,15 +815,10 @@
                     cornerBtn.innerText = c.home_url.replace(/^https?:\/\//, '').replace(/\/$/, '');
                     cornerBtn.style.display = 'block';
                 }
-
                 if (c.font) {
                     const style = document.createElement('style');
                     style.textContent = `
-                        @font-face {
-                            font-family: 'ConfigFont';
-                            src: url('${c.font}');
-                            font-display: swap;
-                        }
+                        @font-face { font-family: 'ConfigFont'; src: url('${c.font}'); font-display: swap; }
                         body { font-family: 'ConfigFont', system-ui, -apple-system, sans-serif !important; }
                     `;
                     document.head.appendChild(style);
@@ -573,8 +827,24 @@
 
             bindGlobalEvents() {
                 document.addEventListener('click', (e) => {
-                    if (!e.target.closest('.card') && window.location.hash) {
+                    if (!e.target.closest('.card') && !e.target.closest('#pwd-modal') && window.location.hash) {
                         history.replaceState(null, '', window.location.pathname + window.location.search);
+                    }
+                    
+                    const card = e.target.closest('.card');
+                    if (card && this.isPrivateMode && !e.target.closest('a') && e.target.tagName !== 'IMG') {
+                        const rect = card.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        const ripple = document.createElement('div');
+                        ripple.className = 'ripple';
+                        ripple.style.left = `${x}px`;
+                        ripple.style.top = `${y}px`;
+                        ripple.style.width = ripple.style.height = '40px';
+                        ripple.style.transformOrigin = 'center';
+                        ripple.style.marginTop = ripple.style.marginLeft = '-20px';
+                        card.appendChild(ripple);
+                        setTimeout(() => ripple.remove(), 800);
                     }
                 });
             }
@@ -593,11 +863,7 @@
 
             parse(raw) {
                 const isAsc = this.config.data_order === 'asc';
-
-                const blocks = raw.split('\n---\n')
-                    .map(b => b.trim())
-                    .filter(b => b && b.split('\n').length >= 2);
-
+                const blocks = raw.split('\n---\n').map(b => b.trim()).filter(b => b && b.split('\n').length >= 2);
                 const total = blocks.length;
 
                 const parsedData = blocks.map((block, index) => {
@@ -616,17 +882,14 @@
                     
                     const processedLines = lines.map(line => {
                         let p = line;
-                        
                         p = p.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, url) => {
                             imgStore.push({ alt, url });
                             return `__IMG_${imgStore.length - 1}__`;
                         });
-
                         p = p.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, url) => {
                             linkStore.push({ text, url });
                             return `__LNK_${linkStore.length - 1}__`;
                         });
-                        
                         p = p.replace(/(https?:\/\/[^\s<]+)/g, (match, url) => {
                             let cleanUrl = url;
                             let trailing = '';
@@ -638,24 +901,19 @@
                             const displayUrl = cleanUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
                             return `<a href="${cleanUrl}" target="_blank" class="card-link" rel="noopener noreferrer">${displayUrl}</a>${trailing}`;
                         });
-
                         p = p.replace(/__LNK_(\d+)__/g, (_, idx) => {
                             const { text, url } = linkStore[idx];
                             return `<a href="${url}" target="_blank" class="card-link" rel="noopener noreferrer">${text}</a>`;
                         });
-                        
                         p = p.replace(/__IMG_(\d+)__/g, (_, idx) => {
                             const { alt, url } = imgStore[idx];
                             return `<img src="${url}" alt="${alt}" class="card-img" loading="lazy" />`;
                         });
-                        
                         return p;
                     });
 
                     let finalHtml = processedLines.join('<br>');
-                    
                     finalHtml = finalHtml.replace(/(?:<br>)*\s*(<img[^>]+>)\s*(?:<br>)*/g, '$1');
-                    
                     finalHtml = finalHtml.replace(/(<img[^>]+>){2,}/g, match => {
                         const count = (match.match(/<img/g) || []).length;
                         const gridClass = (count === 2 || count === 4) ? 'grid-2' : 'grid-3';
@@ -670,40 +928,54 @@
             }
 
             renderTags() {
+                const modeStr = this.isPrivateMode ? 'private' : 'public';
+                const items = this.isPrivateMode ? this.privateItems : this.publicItems;
+                
                 const set = new Set();
-                this.items.forEach(i => i.tags.forEach(t => set.add(t)));
+                items.forEach(i => i.tags.forEach(t => set.add(t)));
                 const unique = Array.from(set);
                 
                 if (!unique.length) {
                     this.tagsEl.style.display = 'none';
                     return;
                 }
-
+                
+                this.tagsEl.style.display = 'flex';
                 this.tagsEl.innerHTML = unique.map(t => `<button class="tag" data-val="${t}">#${t}</button>`).join('');
                 
-                this.tagsEl.addEventListener('click', e => {
+                const activeTag = this.activeTags[modeStr];
+                if (activeTag) {
+                    Array.from(this.tagsEl.children).forEach(btn => {
+                        btn.classList.toggle('active', btn.dataset.val === activeTag);
+                    });
+                }
+                
+                this.tagsEl.onclick = e => {
                     if (e.target.tagName === 'BUTTON') {
                         const val = e.target.dataset.val;
-                        this.active = this.active === val ? null : val;
+                        this.activeTags[modeStr] = this.activeTags[modeStr] === val ? null : val;
                         
                         Array.from(this.tagsEl.children).forEach(btn => {
-                            btn.classList.toggle('active', btn.dataset.val === this.active);
+                            btn.classList.toggle('active', btn.dataset.val === this.activeTags[modeStr]);
                         });
-                        
                         this.render();
                     }
-                });
+                };
             }
 
             render() {
                 this.el.innerHTML = '';
-                const filtered = this.active ? this.items.filter(i => i.tags.includes(this.active)) : this.items;
+                const modeStr = this.isPrivateMode ? 'private' : 'public';
+                const items = this.isPrivateMode ? this.privateItems : this.publicItems;
+                const activeTag = this.activeTags[modeStr];
+                
+                const filtered = activeTag ? items.filter(i => i.tags.includes(activeTag)) : items;
 
                 filtered.forEach((item, i) => {
                     const node = document.createElement('article');
                     node.className = 'item';
                     node.id = `post-${item.id}`;
-                    node.style.animationDelay = `${i * 0.1}s`;
+                    node.style.animationDelay = `${i * 0.08}s`;
 
                     const isLast = i === filtered.length - 1;
                     const line = isLast ? 'background: transparent;' : '';
@@ -727,15 +999,11 @@
                     const inner = node.querySelector('.card-inner');
                     
                     card.addEventListener('click', (e) => {
-                        if (e.target.closest('a')) return;
-                        if (e.target.tagName === 'IMG') return;
-                        
+                        if (e.target.closest('a') || e.target.tagName === 'IMG') return;
                         history.replaceState(null, '', '#' + item.id);
                         
                         if (!card.classList.contains('has-more')) return;
-                        const isExpanded = card.classList.toggle('expanded');
-                        
-                        if (isExpanded) {
+                        if (card.classList.toggle('expanded')) {
                             inner.style.maxHeight = `${inner.scrollHeight}px`;
                         } else {
                             inner.style.maxHeight = '';
@@ -749,9 +1017,7 @@
                     document.querySelectorAll('.card').forEach(card => {
                         const inner = card.querySelector('.card-inner');
                         const checkHeight = () => {
-                            if (inner.scrollHeight > inner.clientHeight + 2) {
-                                card.classList.add('has-more');
-                            }
+                            if (inner.scrollHeight > inner.clientHeight + 2) card.classList.add('has-more');
                         };
                         checkHeight();
                         inner.querySelectorAll('img').forEach(img => img.addEventListener('load', checkHeight));
@@ -759,7 +1025,7 @@
                     
                     mediumZoom('.card-img', {
                         margin: 24,
-                        background: 'rgba(253, 251, 251, 0.9)'
+                        background: this.isPrivateMode ? 'rgba(253, 245, 247, 0.95)' : 'rgba(253, 251, 251, 0.95)'
                     });
                 });
             }
