@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 readonly REPO="https://raw.githubusercontent.com/miniyu157/petal-note/main"
 
@@ -22,9 +23,9 @@ if [[ -n $TARGET_FILE ]]; then
         printf "从 miniyu157/petal-note 拉取 cipher-thoughts.py ...\n"
         curl -sSL "$REPO/cipher-thoughts.py" -o "cipher-thoughts.py"
 
-        pip install -q cryptography
-
-        python3 cipher-thoughts.py -f "$TARGET_FILE" -O "public/$TARGET_FILE" 2>&1 |
+        python3 -m venv .venv
+        .venv/bin/pip install -q cryptography
+        .venv/bin/python cipher-thoughts.py -f "$TARGET_FILE" -O "public/$TARGET_FILE" 2>&1 |
             sed 's/^/[cipher-thoughts.py] /'
     else
         printf "找不到文件: %s\n" "$TARGET_FILE"
