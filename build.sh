@@ -23,6 +23,7 @@ if [[ -n $TARGET_FILE ]]; then
         printf "从 miniyu157/petal-note 拉取 cipher-thoughts.py ...\n"
         curl -sSL "$REPO/cipher-thoughts.py" -o "cipher-thoughts.py"
 
+        unset PYTHONPATH
         python3 -m venv .venv
         .venv/bin/pip install -q cryptography
         .venv/bin/python cipher-thoughts.py -f "$TARGET_FILE" -O "public/$TARGET_FILE" 2>&1 |
