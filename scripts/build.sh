@@ -21,7 +21,7 @@ except Exception:
 if [[ -n $TARGET_FILE ]]; then
     if [[ -f $TARGET_FILE ]]; then
         printf "从 miniyu157/petal-note 拉取 cipher-thoughts.py ...\n"
-        curl -fsSL "$REPO/cipher-thoughts.py" -o "cipher-thoughts.py"
+        curl -fsSL "$REPO/scripts/cipher-thoughts.py" -o "cipher-thoughts.py"
 
         unset PYTHONPATH
         python3 -m venv .venv
