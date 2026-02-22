@@ -16,6 +16,7 @@
             --bg-gradient-start: #fdfbfb;
             --bg-gradient-end: #f1f3f4;
             --private-accent: #f2c6d0;
+            --glow-accent: rgb(216 140 154 / 30%);
         }
 
         body.private-mode {
@@ -125,11 +126,15 @@
             transform: scale(1.1) rotate(15deg);
         }
 
+        @keyframes petalResonance {
+            0%, 100% { filter: drop-shadow(0 0 8px rgb(238 187 77 / 40%)); transform: scale(1.15); }
+            50% { filter: drop-shadow(0 0 16px rgb(238 187 77 / 80%)); transform: scale(1.22); }
+        }
+
         #secret-petal.unlocked {
             opacity: 0.9 !important;
             color: #eebb4d;
-            filter: drop-shadow(0 0 10px rgb(238 187 77 / 50%));
-            transform: scale(1.15) !important;
+            animation: petalResonance 3s ease-in-out infinite;
         }
 
         #pwd-modal {
@@ -155,20 +160,26 @@
         #pwd-input {
             background: transparent;
             border: none;
-            border-bottom: 2px solid rgb(216 140 154 / 30%);
+            background-image: linear-gradient(90deg, transparent, var(--timeline-accent), transparent);
+            background-size: 0px 2px;
+            background-position: center bottom;
+            background-repeat: no-repeat;
             color: var(--text-main);
             font-size: 1.2rem;
             text-align: center;
             padding: 0.5rem 1rem;
-            width: 260px;
+            width: 280px;
             outline: none;
             font-family: inherit;
             letter-spacing: 0.1em;
-            transition: border-color 0.4s ease;
+            text-shadow: 0 0 12px rgb(216 140 154 / 0%);
+            transition: background-size 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+                        text-shadow 0.7s ease;
         }
 
         #pwd-input:focus {
-            border-bottom-color: var(--timeline-accent);
+            background-size: 100% 2px;
+            text-shadow: 0 0 8px rgb(216 140 154 / 20%);
         }
 
         #pwd-input::placeholder {
@@ -294,6 +305,7 @@
         .timeline {
             display: grid;
             gap: 2rem;
+            perspective: 1200px;
         }
 
         .item {
@@ -301,15 +313,24 @@
             grid-template-columns: 20px 1fr;
             gap: 1.2rem;
             opacity: 0;
+            transform-style: preserve-3d;
         }
 
         .timeline.ready .item {
-            animation: fadeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: deepSurface 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes deepSurface {
+            0% { 
+                opacity: 0; 
+                transform: translateY(40px) translateZ(-60px) rotateX(-8deg); 
+                filter: blur(10px);
+            }
+            100% { 
+                opacity: 1; 
+                transform: translateY(0) translateZ(0) rotateX(0); 
+                filter: blur(0);
+            }
         }
 
         @keyframes targetPulse {
@@ -388,34 +409,42 @@
             background: var(--card-bg-blur);
             backdrop-filter: blur(12px) saturate(120%);
             -webkit-backdrop-filter: blur(12px) saturate(120%);
-            border-radius: 6px;
+            border-radius: 8px;
             border: 1px solid rgb(255 255 255 / 40%);
-            box-shadow: 0 2px 8px rgb(0 0 0 / 3%);
-            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.6s ease, background 0.6s ease;
+            box-shadow: 0 4px 15px rgb(0 0 0 / 2%), inset 0 0 0 1px rgb(255 255 255 / 20%);
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
             overflow: hidden;
+            transform-origin: center bottom;
+        }
 
-            @media (hover: hover) {
-                &:hover {
-                    transform: scale(0.99);
-                    box-shadow: 0 1px 4px rgb(0 0 0 / 4%);
-                }
+        @media (hover: hover) {
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 35px var(--glow-accent), inset 0 0 0 1px rgb(255 255 255 / 40%);
+                border-color: rgb(255 255 255 / 80%);
             }
+            body.private-mode .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 40px rgb(242 198 208 / 30%), inset 0 0 25px rgb(255 255 255 / 80%);
+            }
+        }
 
-            &:active {
-                transform: scale(0.97);
-                box-shadow: inset 0 1px 3px rgb(0 0 0 / 4%);
-            }
+        .card:active {
+            transform: translateY(-2px) scale(0.99);
+            box-shadow: 0 8px 20px var(--glow-accent);
+            transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
         body.private-mode .card {
-            box-shadow: 0 4px 20px rgb(242 198 208 / 15%), inset 0 0 15px rgb(255 255 255 / 70%);
-            border-color: rgb(255 255 255 / 60%);
+            box-shadow: 0 8px 30px rgb(242 198 208 / 12%), inset 0 0 20px rgb(255 255 255 / 60%);
+            border-color: rgb(255 255 255 / 50%);
         }
 
-        body.private-mode .card:hover {
-            box-shadow: 0 6px 24px rgb(242 198 208 / 25%), inset 0 0 15px rgb(255 255 255 / 70%);
+        body.private-mode .card:active {
+            transform: translateY(-2px) scale(0.99);
+            box-shadow: 0 8px 25px rgb(242 198 208 / 25%), inset 0 0 15px rgb(255 255 255 / 70%);
         }
 
         .card-id {
