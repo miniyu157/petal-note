@@ -692,8 +692,14 @@
                     if (delay > 0) await new Promise(r => setTimeout(r, delay));
 
                     if (this.config.private_source) {
-                        this.petalBtn.classList.add('visible');
-                        this.initPrivateEvents();
+                        try {
+                            const pRes = await fetch(this.config.private_source);
+                            if (pRes.ok) {
+                                this.rawPrivateData = (await pRes.text()).trim();
+                                this.petalBtn.classList.add('visible');
+                                this.initPrivateEvents();
+                            }
+                        } catch(e) {}
                     }
 
                     const dataSource = this.config.data_source;
@@ -761,12 +767,6 @@
                         } else {
                             this.pwdInput.value = '';
                             this.pwdModal.classList.add('active');
-                            if (!this.rawPrivateData) {
-                                try {
-                                    const res = await fetch(this.config.private_source);
-                                    if (res.ok) this.rawPrivateData = (await res.text()).trim();
-                                } catch (err) {}
-                            }
                         }
                     }
                 });
@@ -797,7 +797,6 @@
             applyConfig(c) {
                 if (c.title) document.getElementById('doc-title').innerText = c.title;
                 if (c.theme_color) document.getElementById('theme-color').content = c.theme_color;
-                
                 if (c.private_tip) this.pwdInput.placeholder = c.private_tip;
                 
                 if (c.icon) {
