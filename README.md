@@ -87,6 +87,7 @@ Petal 是一个极简, 唯美, 无需任何构建工具链的纯前端日记/碎
 
 ```plaintext
 REPO
+ ├── .env           // 可选, 秘密时间线的密语
  ├── private.txt    // 可选, 秘密时间线的明文文件
  ├── build.sh       // 必须, 部署脚本
  └── public
