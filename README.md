@@ -51,17 +51,17 @@ Petal 是一个极简, 唯美, 无需任何构建工具链的纯前端日记/碎
     petal-note 准备了一个脚本, 在一个空文件夹内粘贴以下命令即可快速拉取最新骨架并生成基础的文件结构
 
     ```bash
-    curl -fsSL https://raw.githubusercontent.com/miniyu157/petal-note/main/create-petal-app.sh | bash -e
+    curl -fsSL https://raw.githubusercontent.com/miniyu157/petal-note/main/scripts/create-petal-app.sh | bash -e
     ```
 
 2. 在静态服务平台托管你的仓库
 3. 在部署设置中, 将 **Build command** 设置为:
 
-   ```bash
-   curl -fsSL https://raw.githubusercontent.com/miniyu157/petal-note/539b6b3/build.sh | bash -e
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/miniyu157/petal-note/a6739b0/scripts/build.sh | bash -e
     ```
 
-    [提交 539b6b3 - build.sh](https://github.com/miniyu157/petal-note/commit/539b6b3)
+    [提交 a6739b0 - build.sh](https://github.com/miniyu157/petal-note/commit/a6739b0)
 
 4. 将构建输出目录设置为 `public`
 
