@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./repo_asssets/favicon.png" alt="Petal Logo" width="120" />
+<img src="./favicon.png" alt="Petal Logo" width="120" />
 
 # Petal Note
 
@@ -83,7 +83,7 @@ theme_color = "#FFB6C1"
 font = "./assets/font.ttf"
 load_delay = 800 # ms
 data_order = "asc" # [asc|desc]
-private_source = "./private.txt"
+private_source = "./private.txt.dec"
 private_tip="输入轻语解锁梦境..."
 ```
 

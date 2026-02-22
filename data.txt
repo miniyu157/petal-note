@@ -69,7 +69,7 @@ Petal
 Petal
 #用法 #图片渲染
 正文中可以使用简单的 markdown 图片语法和超链接语法，多张连续的图片会被合并为表格。带有 https:// 或 http:// 的 URL也会被渲染为可点击的超链接。单击此处即可展开查看图片
-![logo](./repo_asssets/favicon.png)
+![logo](./favicon.png)
 ---
 Petal
 #用法 #正文格式
