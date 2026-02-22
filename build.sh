@@ -4,7 +4,7 @@ set -euo pipefail
 readonly REPO="https://raw.githubusercontent.com/miniyu157/petal-note/main"
 
 printf "从 miniyu157/petal-note 拉取 index.html 到 public/ ...\n"
-curl -sSL "$REPO/index.html" -o "public/index.html"
+curl -fsSL "$REPO/public/index.html" -o "public/index.html"
 
 TARGET_FILE=$(python3 -c '
 import sys, tomllib
@@ -21,7 +21,7 @@ except Exception:
 if [[ -n $TARGET_FILE ]]; then
     if [[ -f $TARGET_FILE ]]; then
         printf "从 miniyu157/petal-note 拉取 cipher-thoughts.py ...\n"
-        curl -sSL "$REPO/cipher-thoughts.py" -o "cipher-thoughts.py"
+        curl -fsSL "$REPO/cipher-thoughts.py" -o "cipher-thoughts.py"
 
         unset PYTHONPATH
         python3 -m venv .venv
