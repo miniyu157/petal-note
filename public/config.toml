@@ -1,14 +1,17 @@
 data_source = "./data.txt"
+private_source = "./private.txt"
+
 title = "Petal"
-icon = "./assets/favicon.ico"
 header_title = "Petal Note"
 header_subtitle = """
 风吹落的花瓣，和那些无处安放的碎碎念。
 """
+private_tip = "输入轻语解锁梦境..."
 home_url = "https://github.com/miniyu157/petal-note"
-theme_color = "#FFB6C1"
+
+icon = "./assets/favicon.ico"
 font = "./assets/font.ttf"
+theme_color = "#FFB6C1"
+
 load_delay = 800 # ms
 data_order = "asc" # [asc|desc]
-private_source = "./private.txt"
-private_tip = "输入轻语解锁梦境..."
