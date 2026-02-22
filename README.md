@@ -40,14 +40,20 @@ Petal 是一个极简, 唯美, 无需任何构建工具链的纯前端日记/碎
     ```
 
 2. 按照你的喜好修改 `config.toml` 中的基本信息
-3. 指定 `source_data` 并写下你的碎碎念, 格式参考文档内说明, 支持拉取远程 URL
-4. 将整个文件夹托管到任意静态服务平台, 如 Cloudflare Pages, Vercel, GitHub Pages, 甚至是一个普通的 Nginx 服务器
+3. 将整个文件夹托管到任意静态服务平台, 如 Cloudflare Pages, Vercel, GitHub Pages, 甚至是一个普通的 Nginx 服务器
 
 ### 方式二: 🍀 内容与框架分离 (推荐, 保持最新)
 
 如果你希望外观和特性永远保持最新, 并与个人日记解耦
 
 1. 建立一个全新的空仓库, 将 `config.toml`, 你的数据文件, 资源文件存放至 `public/`, 无需创建 `index.html`
+
+    petal-note 准备了一个脚本, 在一个空文件夹内粘贴以下命令即可快速拉取最新骨架并生成基础的文件结构
+
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/miniyu157/petal-note/main/create-petal-app.sh | bash -e
+    ```
+
 2. 在静态服务平台托管你的仓库
 3. 在部署设置中, 将 **Build command** 设置为:
 
