@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./favicon.png" alt="Petal Logo" width="120" />
+<img src="./public/favicon.png" alt="Petal Logo" width="120" />
 
 # Petal Note
 
@@ -21,9 +21,9 @@ Petal 是一个极简, 唯美, 无需任何构建工具链的纯前端日记/碎
 ### ✨ 特性
 
 * **自由随写**: 没有固定的时间戳格式与排序, 格式由你定义
-* **极尽纯粹**: 核心仅为一个 `index.html`, 无框架依赖
-* **文件驱动**: 所有数据均为人类可读的 TOML, TXT
-* **优雅交互**: 内置原生实现的樱花飘落系统, 平滑的图片放大, 卡片长文本自动折叠与优雅的 URL 锚点路由
+* **极尽纯粹**: 核心仅为 `index.html` 和 `config.toml`, 无主流框架依赖
+* **文件驱动**: 所有数据均为人类可读的 TOML, TXT, 日记源还可配置为网络 URL
+* **私密日记**: 可配置秘密时间线, 由 AES-GCM 驱动, 并且外观上拥有更加沉浸的氛围
 * **标签系统**: 自动提取正文首行的 `#标签` 并渲染过滤导航组件
 * **极致响应**: 精心调校的动画与排版, 兼顾桌面端与移动端的完美触觉反馈
 
@@ -40,26 +40,64 @@ Petal 是一个极简, 唯美, 无需任何构建工具链的纯前端日记/碎
     ```
 
 2. 按照你的喜好修改 `config.toml` 中的基本信息
-3. 在 `data.txt` 中写下你的碎碎念, 格式参考文档内说明
+3. 指定 `source_data` 并写下你的碎碎念, 格式参考文档内说明, 支持拉取远程 URL
 4. 将整个文件夹托管到任意静态服务平台, 如 Cloudflare Pages, Vercel, GitHub Pages, 甚至是一个普通的 Nginx 服务器
 
 ### 方式二: 🍀 内容与框架分离 (推荐, 保持最新)
 
-如果你希望样式和特性永远保持最新, 并与个人日记解耦
+如果你希望外观和特性永远保持最新, 并与个人日记解耦
 
-1. 建立一个全新的空仓库, 仅存放 `data.txt`, `config.toml`, 素材和字体等文件, 无需创建 `index.html`
+1. 建立一个全新的空仓库, 将 `config.toml`, 你的数据文件, 资源文件存放至 `public/`, 无需创建 `index.html`
 2. 在静态服务平台托管你的仓库
 3. 在部署设置中, 将 **Build command** 设置为:
 
    ```bash
-   curl -L https://raw.githubusercontent.com/miniyu157/petal-note/main/index.html -o index.html
+   bash build.sh
     ```
 
-4. 将构建输出目录设置为根目录, 通常为 `/` 或留空。
+4. 将构建输出目录设置为 `public`
 
-这样, 每次推送日记时, 都会自动拉取并注入最新版本的 Petal 骨架, 个人内容仓库保持纯净
+这样, 每次推送日记时, 都会自动拉取并注入最新版本的 Petal Note 骨架, 个人内容仓库保持纯净
 
 > 若想要仅更新骨架, 则手动触发一次 `Redeploy`
+
+---
+
+## 🐰 秘密时间线
+
+当设置 `private_source` 后即可生效
+
+因为没有时间戳等约定, 秘密时间线与公开时间线相互独立. 秘密时间线通过 **AES-GCM** 驱动, 密语匹配成功即可进入
+
+个人仓库中无需手动上传加密文件, petal-note 提供了 `build.sh` 和 `cipher-thoughts.py` 等部署实用工具
+
+它们会在静态托管平台部署时读取 `config.toml` 中 `private_source` 设置的文件名称, 然后尝试从仓库根目录找到 **同名的明文日记文件** 和 `.env` 中设置的密语,
+然后将日记加密并生成到 `public`, 所有过程文件不会暴露在你的网站上
+
+### 个人仓库结构概览
+
+无需放入 `index.html`, 秘密时间线文件, 包括 **.env**, **可以存储为明文**在你的个人仓库中, 只要你在静态托管平台设置了根目录为 `public`
+
+> [!WARNING]
+> 不要将仓库设置为 public, 除非你想暴露所有的东西
+
+> [!TIP]
+> 如果不想让人轻易获取你的时间线, 可以根据个人情况为网站  
+> 添加 `x-robots-tag: noindex, nofollow` 标记
+
+```plaintext
+REPO
+ ├── private.txt    // 可选, 秘密时间线的明文文件
+ ├── build.sh       // 必须, 部署脚本
+ └── public
+     ├── ...            // 其他资源文件
+     ├── config.toml    // 配置文件
+     ├── data.txt       // 公开的时间线文件
+     └── assets
+         ├── favicon.ico    // 图标资源
+         ├── font.woff2     // 字体
+         └── ...jpg         // 其他资源文件
+```
 
 ---
 
@@ -68,26 +106,29 @@ Petal 是一个极简, 唯美, 无需任何构建工具链的纯前端日记/碎
 ### ⚙️ config.toml
 
 用于定义站点的全局信息, 包括标题, 描述, 图标以及字体设置, 所有项均为可选  
-包括 data_source 以内的部分资源项目可以设置为网络 URL, 运行时自动拉取
+包括 `data_source` 以内的资源项目都可以设置为网络 URL, 运行时将自动拉取
 
 ```toml
 data_source = "./data.txt"
+private_source = "./private.txt.dec"
+
 title = "Petal"
-icon = "./assets/favicon.ico"
 header_title = "Petal"
 header_subtitle = """
 风吹落的花瓣, 和那些无处安放的碎碎念。
 """
+private_tip="输入轻语解锁梦境..."
 home_url = ""
-theme_color = "#FFB6C1"
+
+icon = "./assets/favicon.ico"
 font = "./assets/font.ttf"
+theme_color = "#FFB6C1"
+
 load_delay = 800 # ms
 data_order = "asc" # [asc|desc]
-private_source = "./private.txt.dec"
-private_tip="输入轻语解锁梦境..."
 ```
 
-### 📖 data.txt
+### 📖 data_source, private_source
 
 使用 `---` 作为每条日记的分割线
 
@@ -100,6 +141,35 @@ private_tip="输入轻语解锁梦境..."
 长内容会自动检测高度并在底部呈现渐隐折叠。
 ![猫咪图片](./assets/cat.jpeg)
 支持简单的 Markdown 图片语法, 以及直接写入的 https:// 链接, 它们会被自动解析并高亮。
+```
+
+---
+
+## 🛠️ AES-GCM 工具
+
+仓库中的 `cipher-thoughts.py` 是一个极简的 AES-GCM 工具, 由 python 库 cryptography 驱动
+
+每次加密时生成 12 字节的 IV, 所以即使内容和密码相同, 每次的密文也是不同的
+
+```console
+> ./cipher-thoughts.py
+usage: cipher-thoughts.py [-d] [-t TEXT] [-f FILE][-o [OUT]] [-O [OVERWRITE_OUT]] [-p PASSWORD] [-h] [filepath]
+
+极简 AES-GCM 工具
+
+positional arguments:
+  filepath              要处理的文件
+
+options:
+  -d, --decrypt         解密模式
+  -t, --text TEXT       直接处理传入的文本内容
+  -f, --file FILE       处理指定路径的文件 (同位置参数)
+  -o, --out [OUT]       将结果输出到文件 (不指定文件名则自动去除或加入 .dec 后缀)
+  -O, --overwrite-out [OVERWRITE_OUT]
+                        将结果输出到文件 (不指定文件名则自动去除或加入 .dec 后缀, 不检查覆盖)
+  -p, --password PASSWORD
+                        指定密码 (优先于环境变量及.env)
+  -h, --help            显示此帮助信息并退出
 ```
 
 ---
