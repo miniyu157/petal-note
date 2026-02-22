@@ -1,2 +1,4 @@
-.env
 .vscode/
+.ruff_cache/
+public/private.txt.dec
+
