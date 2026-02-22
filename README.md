@@ -52,8 +52,10 @@ Petal 是一个极简, 唯美, 无需任何构建工具链的纯前端日记/碎
 3. 在部署设置中, 将 **Build command** 设置为:
 
    ```bash
-   bash build.sh
+   curl -fsSL https://raw.githubusercontent.com/miniyu157/petal-note/539b6b3/build.sh | bash -e
     ```
+
+    [提交 539b6b3 - build.sh](https://github.com/miniyu157/petal-note/commit/539b6b3)
 
 4. 将构建输出目录设置为 `public`
 
@@ -89,7 +91,6 @@ Petal 是一个极简, 唯美, 无需任何构建工具链的纯前端日记/碎
 REPO
  ├── .env           // 可选, 秘密时间线的密语
  ├── private.txt    // 可选, 秘密时间线的明文文件
- ├── build.sh       // 必须, 部署脚本
  └── public
      ├── ...            // 其他资源文件
      ├── config.toml    // 配置文件
